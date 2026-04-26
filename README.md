@@ -2,7 +2,13 @@
 Creating my own chess engine - Storm. A project to dive into the world of chess programming
 
 ## Methodology
-### UI
+### starting position
+create a FEN string parser that sets up the board
+### I/O
+input and output will be through the terminal. evaluation of the position should be printed with each move
+### Board Representation
+initial attempt will be a mailbox representation (2d or 1d array). once i understand the logic, i will implement bitboards as well.
+#### UI
 will use opengl as the main graphics api. displaying the board and the user interface will be done via opengl as well
 
 ### Backend
