@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        "-std=c++17",
+        "src/main.cpp",          // your source file(s)
+        "-o",
+        "main",              // output binary
+        "-I/opt/homebrew/Cellar/raylib/5.5/include",             // headers (if you have a local include/)
+        "-L/opt/homebrew/Cellar/raylib/5.5/lib",                 // library path (if Raylib is in lib/)
+        "-lraylib",              // link Raylib
+        "-framework", "OpenGL",
+        "-framework", "Cocoa",
+        "-framework", "IOKit",
+        "-framework", "CoreVideo"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "run",
+      "type": "shell",
+      "command": "./bin/main",
+      "dependsOn": "build"
+    }
+  ]
+}
