@@ -3,11 +3,12 @@
 #define BOARD_SIZE 8
 #define SQUARE_SIZE 60
 
+Color boardBackground = CLITERAL(Color){90, 63, 47,255};
 void drawBoard();
 
 int main(){
 
-    InitWindow(BOARD_SIZE * SQUARE_SIZE, BOARD_SIZE * SQUARE_SIZE, "Chess Engine");
+    InitWindow(510, 510, "Chess Engine");
     SetTargetFPS(60);
 
     while(!WindowShouldClose()){
@@ -21,7 +22,7 @@ int main(){
             break;
         }
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(boardBackground);
         drawBoard();
         EndDrawing();
     }
@@ -33,8 +34,8 @@ int main(){
 void drawBoard(){
     for(int i = 0; i < BOARD_SIZE; i++){
         for(int j = 0; j < BOARD_SIZE; j++){
-            Color squareColor = ((i + j) % 2) ? BLACK : WHITE;
-            DrawRectangle(i * SQUARE_SIZE, j * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE, squareColor);
+            Color squareColor = ((i + j) % 2) ? BROWN : LIGHTGRAY;
+            DrawRectangle(i * SQUARE_SIZE + 15, j * SQUARE_SIZE + 15, SQUARE_SIZE, SQUARE_SIZE, squareColor);
         }
     }
 }
