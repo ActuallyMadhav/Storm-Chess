@@ -1,28 +1,46 @@
 #include "raylib.h"
 #include <iostream>
-#define BOARD_SIZE 8
-#define SQUARE_SIZE 60
 
+// window params
+int width = 640;
+int height = 640;
+
+double boardX = 0.5 * (width - height);
+double boardY = 0;
+double boardSize = height;
+
+double squareSize = boardSize * 0.9 * 0.125;
+double squareX = boardX + boardSize*0.05;
+double squareY = boardY + boardSize*0.05;
+
+// board color
 Color boardBackground = CLITERAL(Color){90, 63, 47,255};
+
+// draw chess board
 void drawBoard();
+
+// coordinates to track selected square
+int selectX = -1;
+int selectY = -1;
 
 int main(){
 
-    InitWindow(510, 510, "Chess Engine");
+    InitWindow(width, height, "Chess Engine");
     SetTargetFPS(60);
 
     while(!WindowShouldClose()){
 
         Vector2 mousePos = GetMousePosition();
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-            std::cout << "button clicked at [" << mousePos.x << ", " << mousePos.y << "]" << '\n';
+            selectX = floor((mousePos.x - squareX) / squareSize);
+            selectY = floor((mousePos.y - squareY) / squareSize);
         }
 
         if(IsKeyPressed(KEY_ESCAPE)){
             break;
         }
         BeginDrawing();
-        ClearBackground(boardBackground);
+        ClearBackground(RAYWHITE);
         drawBoard();
         EndDrawing();
     }
@@ -32,10 +50,19 @@ int main(){
 }
 
 void drawBoard(){
-    for(int i = 0; i < BOARD_SIZE; i++){
-        for(int j = 0; j < BOARD_SIZE; j++){
+    //draw background
+    DrawRectangle(boardX, boardY, boardX + boardSize, boardY + boardSize, boardBackground);
+
+    // draw squares
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
             Color squareColor = ((i + j) % 2) ? BROWN : LIGHTGRAY;
-            DrawRectangle(i * SQUARE_SIZE + 15, j * SQUARE_SIZE + 15, SQUARE_SIZE, SQUARE_SIZE, squareColor);
+            DrawRectangle(squareX + squareSize * i, squareY + squareSize * j, squareSize, squareSize, squareColor);
         }
+    }
+
+    // highlight selected square
+    if(selectX >= 0 && selectY >= 0 && selectX <= 8 && selectY <= 8){
+        DrawRectangle(squareX + squareSize*selectX, squareY + squareSize*selectY, squareSize, squareSize, GREEN);
     }
 }
