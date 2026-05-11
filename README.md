@@ -9,7 +9,7 @@ input and output will be through the terminal. evaluation of the position should
 ### Board Representation
 initial attempt will be a mailbox representation (2d or 1d array). once i understand the logic, i will implement bitboards as well.
 #### UI
-will use opengl as the main graphics api. displaying the board and the user interface will be done via opengl as well
+i plan to use opengl as the main graphics api. displaying the board and the user interface will be done via opengl as well. for ease of development i will first implement it in raylib and then move onto opengl once i have learnt the api properly. also raylib is just easier LOL
 
 ### Backend
 going to implement 2 search algorithms: 
