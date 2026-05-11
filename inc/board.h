@@ -10,21 +10,14 @@ enum Piece{
 
 class Board{
 private:
+    uint64_t bitboards[12]; // one bitboard for each piece type. 1 - piece on square, 0 - piece not on square
 
 public:
-    int boardSetup[64] = {
-        brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook,
-        bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn,
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn,
-        wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook
-    };
 
-    inline int convert2Dto1D(uint8_t x, uint8_t y) const{
-        return y*8 + x;
-    }
+    uint8_t getPiece(uint8_t square);
+    uint8_t setPiece(uint8_t square, uint8_t piece);
 
+    // constructor
+    Board();
+    
 };
