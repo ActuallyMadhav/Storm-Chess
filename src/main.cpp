@@ -22,9 +22,7 @@ void drawBoard();
 void drawPiece(int x, int y, int size, int piece);
 
 // input handling
-void mouse(){
-
-}
+void mouse();
 
 // coordinates to track selected square
 int selectX = -1;
@@ -41,11 +39,7 @@ int main(){
 
     while(!WindowShouldClose()){
 
-        Vector2 mousePos = GetMousePosition();
-        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-            selectX = floor((mousePos.x - squareX) / squareSize);
-            selectY = floor((mousePos.y - squareY) / squareSize);
-        }
+        mouse();
 
         if(IsKeyPressed(KEY_ESCAPE)){
             break;
@@ -59,6 +53,14 @@ int main(){
 
     CloseWindow();
     return 0;
+}
+
+void mouse(){
+    Vector2 mousePos = GetMousePosition();
+    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        selectX = floor((mousePos.x - squareX) / squareSize);
+        selectY = floor((mousePos.y - squareY) / squareSize);
+    }
 }
 
 void drawBoard(){
