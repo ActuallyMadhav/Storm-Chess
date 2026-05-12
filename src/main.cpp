@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "board.h"
 #include <iostream>
 
 // window params
@@ -18,14 +19,19 @@ Color boardBackground = CLITERAL(Color){90, 63, 47,255};
 
 // draw chess board
 void drawBoard();
+void drawPiece(int x, int y, int size, int piece);
 
 // coordinates to track selected square
 int selectX = -1;
 int selectY = -1;
 
+// game state
+Board game;
+
 int main(){
 
     InitWindow(width, height, "Chess Engine");
+    game.loadSprites();
     SetTargetFPS(60);
 
     while(!WindowShouldClose()){
@@ -40,6 +46,7 @@ int main(){
             break;
         }
         BeginDrawing();
+        GetWorkingDirectory();
         ClearBackground(RAYWHITE);
         drawBoard();
         EndDrawing();
@@ -62,7 +69,23 @@ void drawBoard(){
     }
 
     // highlight selected square
-    if(selectX >= 0 && selectY >= 0 && selectX <= 8 && selectY <= 8){
+    if(selectX >= 0 && selectY >= 0 && selectX < 8 && selectY < 8){
         DrawRectangle(squareX + squareSize*selectX, squareY + squareSize*selectY, squareSize, squareSize, GREEN);
+    }
+
+    for(int x = 0; x < 8; x++){
+        for(int y = 0; y < 8; y++){
+            uint8_t square = y * 8 + x;
+            drawPiece(squareX + squareSize*(0.5+x), squareY + squareSize*(0.5+y), squareSize, game.getPiece(square));
+        }
+    }
+}
+
+void drawPiece(int x, int y, int size, int piece){
+    if(piece != empty){
+        Texture2D sprite = game.pieceSprites[piece];
+        int centeredX = x - sprite.width / 2;
+        int centeredY = y - sprite.height / 2;
+        DrawTexture(sprite, centeredX, centeredY, WHITE);
     }
 }
