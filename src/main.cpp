@@ -21,6 +21,11 @@ Color boardBackground = CLITERAL(Color){90, 63, 47,255};
 void drawBoard();
 void drawPiece(int x, int y, int size, int piece);
 
+// input handling
+void mouse(){
+
+}
+
 // coordinates to track selected square
 int selectX = -1;
 int selectY = -1;
@@ -84,8 +89,17 @@ void drawBoard(){
 void drawPiece(int x, int y, int size, int piece){
     if(piece != empty){
         Texture2D sprite = game.pieceSprites[piece];
-        int centeredX = x - sprite.width / 2;
-        int centeredY = y - sprite.height / 2;
-        DrawTexture(sprite, centeredX, centeredY, WHITE);
+
+        // scale to match square size and center accordingly
+        float scaleX = (float)squareSize / sprite.width;
+        float scaleY = (float)squareSize / sprite.height;
+        float scale = fmin(scaleX, scaleY);
+
+        Vector2 pos = {
+            x - (sprite.width * scale) / 2,
+            y - (sprite.height * scale) / 2
+        };
+
+        DrawTextureEx(sprite, pos, 0.0f, scale, WHITE);
     }
 }

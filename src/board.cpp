@@ -24,17 +24,40 @@ void Board::setPiece(uint8_t square, uint8_t piece){
 
 void Board::loadSprites(){
     pieceSprites[wpawn] = LoadTexture("sprites/white/whitePawn.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[wknight] = LoadTexture("sprites/white/whiteKnight.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);    
+    
     pieceSprites[wbishop] = LoadTexture("sprites/white/whiteBishop.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[wrook] = LoadTexture("sprites/white/whiteRook.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[wqueen] = LoadTexture("sprites/white/whiteQueen.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[wking] = LoadTexture("sprites/white/whiteKing.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);    
+    
     pieceSprites[bpawn] = LoadTexture("sprites/black/blackPawn.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);    
+    
     pieceSprites[bknight] = LoadTexture("sprites/black/blackKnight.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[bbishop] = LoadTexture("sprites/black/blackBishop.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[brook] = LoadTexture("sprites/black/blackRook.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[bqueen] = LoadTexture("sprites/black/blackQueen.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    
     pieceSprites[bking] = LoadTexture("sprites/black/blackKing.png");
+    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
 }
 
 Board::Board(){
