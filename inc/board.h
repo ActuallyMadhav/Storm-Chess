@@ -1,11 +1,12 @@
 #pragma once
 #include <cstdint>
+#include "raylib.h"
 
 // positive = white, negative = black
 enum Piece{
-    empty = 0, 
-    wpawn = 1, wknight = 2, wbishop = 3, wrook = 4, wqueen = 5, wking = 9,
-    bpawn = -1, bknight = -2, bbishop = -3, brook = -4, bqueen = -5, bking = -9
+    wpawn = 0, wknight = 1, wbishop = 2, wrook = 3, wqueen = 4, wking = 5,
+    bpawn = 6, bknight = 7, bbishop = 8, brook = 9, bqueen = 10, bking = 11,
+    empty = 12
 };
 
 class Board{
@@ -14,10 +15,15 @@ private:
 
 public:
 
+    Texture2D pieceSprites[12];
+
     uint8_t getPiece(uint8_t square);
-    uint8_t setPiece(uint8_t square, uint8_t piece);
+    void setPiece(uint8_t square, uint8_t piece);
+    void loadSprites();
 
     // constructor
     Board();
     
+    // destructor
+    ~Board();
 };
