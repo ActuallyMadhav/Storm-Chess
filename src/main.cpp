@@ -21,6 +21,7 @@ Color boardBackground = CLITERAL(Color){90, 63, 47,255};
 void drawBoard();
 void drawPiece(int x, int y, int size, int piece);
 bool flipped = false;   // tracks whether board is flipped or not
+std::pair<int, int> getScreenCoords(int x, int y);    // gives the flipped coordinates if board is flipped. gives normal if not
 
 // input handling
 void mouse();
@@ -55,6 +56,20 @@ int main(){
     return 0;
 }
 
+std::pair<int, int> getScreenCoords(int x, int y){
+    int screenX, screenY;
+    if(flipped){
+        screenX = squareX + squareSize * (7 - x);
+        screenY = squareY + squareSize * (7 - y);
+    }
+    else{
+        // not flipped
+        screenX = squareX + squareSize * x;
+        screenY = squareY + squareSize * y;
+    }
+    return {screenX, screenY};
+}
+
 void mouse(){
     Vector2 mousePos = GetMousePosition();
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
@@ -62,6 +77,10 @@ void mouse(){
         int clickX = floor((mousePos.x - squareX) / squareSize);
         int clickY = floor((mousePos.y - squareY) / squareSize);
 
+        if(flipped){
+            clickX = 7 - clickX;
+            clickY = 7 - clickY;
+        }
         // move selected piece if selected square has piece
         if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8 && game.getPiece(selectX + 8 * selectY) != empty){
             if(clickX >= 0 && clickX < 8 && clickY >= 0 && clickY < 8){
@@ -96,48 +115,26 @@ void drawBoard(){
     //draw background
     DrawRectangle(boardX, boardY, boardX + boardSize, boardY + boardSize, boardBackground);
 
-    if(!flipped){
-        // draw squares
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                Color squareColor = ((i + j) % 2) ? BROWN : LIGHTGRAY;
-                DrawRectangle(squareX + squareSize * i, squareY + squareSize * j, squareSize, squareSize, squareColor);
-            }
-        }
-
-        // highlight selected square
-        if(selectX >= 0 && selectY >= 0 && selectX < 8 && selectY < 8){
-            DrawRectangle(squareX + squareSize*selectX, squareY + squareSize*selectY, squareSize, squareSize, GREEN);
-        }
-
-        // draw pieces
-        for(int x = 0; x < 8; x++){
-            for(int y = 0; y < 8; y++){
-                uint8_t square = y * 8 + x;
-                drawPiece(squareX + squareSize*(0.5+x), squareY + squareSize*(0.5+y), squareSize, game.getPiece(square));
-            }
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            std::pair<int, int> screenCoords = getScreenCoords(i, j);
+            Color squareColor = ((i + j) % 2) ? BROWN : LIGHTGRAY;
+            DrawRectangle(screenCoords.first, screenCoords.second, squareSize, squareSize, squareColor);
         }
     }
-    else{
-        // draw flipped board
-        for(int i = 7; i >= 0; i--){
-            for(int j = 7; j >= 0; j--){
-                Color squareColor = ((i + j) % 2) ? BROWN : LIGHTGRAY;
-                DrawRectangle(squareX + squareSize * (7 - i), squareY + squareSize * (7 - j), squareSize, squareSize, squareColor);
-            }
-        }
 
-        // highlight square
-        if((7 - selectX) >= 0 && (7 - selectY) >= 0 && (7 - selectX) < 8 && (7 - selectY) < 8){
-            DrawRectangle(squareX + squareSize*selectX, squareY + squareSize*selectY, squareSize, squareSize, GREEN);
-        }
+    // highlight selected square
+    std::pair<int, int> highlightCoords = getScreenCoords(selectX, selectY);
+    if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8){
+        DrawRectangle(highlightCoords.first, highlightCoords.second, squareSize, squareSize, GREEN);
+    }
 
-        // draw flipped pieces
-        for(int x = 0; x < 8; x++){
-            for(int y = 0; y < 8; y++){
-                uint8_t square = y * 8 + x;
-                drawPiece(squareX + squareSize*(0.5 + 7 - x), squareY + squareSize*(0.5 + 7 - y), squareSize, game.getPiece(square));
-            }
+    // draw pieces
+    for(int x = 0; x < 8; x++){
+        for(int y = 0; y < 8; y++){
+            std::pair<int, int> screenCoords = getScreenCoords(x, y);
+            uint8_t square = y * 8 + x;
+            drawPiece(screenCoords.first + 0.5 * squareSize, screenCoords.second + 0.5 * squareSize, squareSize, game.getPiece(square));
         }
     }
 }
