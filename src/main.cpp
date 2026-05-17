@@ -119,6 +119,11 @@ void keyboard(){
     if(IsKeyPressed(KEY_SPACE)){
         flipped = !flipped;
     }
+
+    if(IsKeyPressed(KEY_BACKSPACE)){
+        game.undo();
+        moveIndex--;
+    }
 }
 
 void drawBoard(){
@@ -139,6 +144,17 @@ void drawBoard(){
         DrawRectangle(highlightCoords.first, highlightCoords.second, squareSize, squareSize, GREEN);
     }
 
+    // show previous move
+    Vector2 fromCoords = {
+        (float)(squareX + squareSize * (moveTracker[moveIndex-1].fromSquare % 8 + 0.5)), // from x-coord
+        (float)(squareY + squareSize * (moveTracker[moveIndex-1].fromSquare / 8 + 0.5)), // from y-coord
+    };
+    Vector2 toCoords = {
+        (float)(squareX + squareSize * (moveTracker[moveIndex-1].toSquare % 8 + 0.5)),   // to x-coord
+        (float)(squareY + squareSize * (moveTracker[moveIndex-1].toSquare / 8 + 0.5)),   // to y-coord
+    };
+    // draw line
+    DrawLineEx(fromCoords, toCoords, 5.0f, GREEN);
     // draw pieces
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
