@@ -34,6 +34,10 @@ int selectY = -1;
 // game state
 Board game;
 
+// old move tracker
+Move moveTracker[1000];
+int moveIndex = 0;
+
 int main(){
 
     InitWindow(width, height, "Chess Engine");
@@ -84,8 +88,14 @@ void mouse(){
         // move selected piece if selected square has piece
         if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8 && game.getPiece(selectX + 8 * selectY) != empty){
             if(clickX >= 0 && clickX < 8 && clickY >= 0 && clickY < 8){
-                game.setPiece(clickX + 8 * clickY, game.getPiece(selectX + 8 * selectY));
-                game.setPiece((selectX + 8 * selectY), empty);
+                uint8_t fromSquare = selectX + selectY*8;
+                uint8_t toSquare = clickX + clickY*8;
+
+                moveTracker[moveIndex].fromSquare = fromSquare;
+                moveTracker[moveIndex].toSquare = toSquare;
+                moveTracker[moveIndex].promote = empty;
+
+                game.move(moveTracker[moveIndex++]);
             }
 
             selectX = -1;

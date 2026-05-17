@@ -27,42 +27,43 @@ void Board::loadSprites(){
     SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
     
     pieceSprites[wknight] = LoadTexture("sprites/white/whiteKnight.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);    
+    SetTextureFilter(pieceSprites[wknight], TEXTURE_FILTER_POINT);    
     
     pieceSprites[wbishop] = LoadTexture("sprites/white/whiteBishop.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[wbishop], TEXTURE_FILTER_POINT);
     
     pieceSprites[wrook] = LoadTexture("sprites/white/whiteRook.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[wrook], TEXTURE_FILTER_POINT);
     
     pieceSprites[wqueen] = LoadTexture("sprites/white/whiteQueen.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[wqueen], TEXTURE_FILTER_POINT);
     
     pieceSprites[wking] = LoadTexture("sprites/white/whiteKing.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);    
+    SetTextureFilter(pieceSprites[wking], TEXTURE_FILTER_POINT);    
     
     pieceSprites[bpawn] = LoadTexture("sprites/black/blackPawn.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);    
+    SetTextureFilter(pieceSprites[bpawn], TEXTURE_FILTER_POINT);    
     
     pieceSprites[bknight] = LoadTexture("sprites/black/blackKnight.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[bknight], TEXTURE_FILTER_POINT);
     
     pieceSprites[bbishop] = LoadTexture("sprites/black/blackBishop.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[bbishop], TEXTURE_FILTER_POINT);
     
     pieceSprites[brook] = LoadTexture("sprites/black/blackRook.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[brook], TEXTURE_FILTER_POINT);
     
     pieceSprites[bqueen] = LoadTexture("sprites/black/blackQueen.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[bqueen], TEXTURE_FILTER_POINT);
     
     pieceSprites[bking] = LoadTexture("sprites/black/blackKing.png");
-    SetTextureFilter(pieceSprites[wpawn], TEXTURE_FILTER_POINT);
+    SetTextureFilter(pieceSprites[bking], TEXTURE_FILTER_POINT);
 }
 
 void Board::move(const Move& move){
     // add new state to state tracker
-    stateTracker[trackerIndex + 1] = stateTracker[trackerIndex++];
+    stateTracker[trackerIndex + 1] = stateTracker[trackerIndex];
+    trackerIndex++;
 
     // to and from bitboards
     uint64_t fromBitboard = uint64_t(1) << move.fromSquare;
@@ -83,10 +84,36 @@ void Board::move(const Move& move){
 
     for(i; i < limit; i++){
         if(stateTracker[trackerIndex].bitboards[i] & fromBitboard){
-            stateTracker[trackerIndex].bitboards[i] ^= moveBitboard;
+            stateTracker[trackerIndex].bitboards[i] &= ~fromBitboard;
+            stateTracker[trackerIndex].bitboards[i] |= toBitboard;
             movedPiece = i;
-            break;  // continue from here
+            break;
         }
+    }
+
+    // to capture piece
+    if(stateTracker[trackerIndex].turn == white){
+        i = 6;
+        limit = 11;
+    }
+    else{
+        i = 0;
+        limit = 5;
+    }
+    
+    for(i; i < limit; i++){
+        if(stateTracker[trackerIndex].bitboards[i] & toBitboard){
+            stateTracker[trackerIndex].bitboards[i] &= ~toBitboard;
+            break;
+        }
+    }
+
+    // change turn
+    if(stateTracker[trackerIndex].turn == white){
+        stateTracker[trackerIndex].turn = black;
+    }
+    else{
+        stateTracker[trackerIndex].turn = white;
     }
 }
 
