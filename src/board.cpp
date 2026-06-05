@@ -1,4 +1,5 @@
 #include "board.h"
+#include <cmath>
 
 uint8_t Board::getPiece(uint8_t square){
     uint64_t mask = uint64_t(1) << square;
@@ -82,7 +83,7 @@ void Board::move(const Move& move){
         limit = 12;
     }
 
-    for(i; i < limit; i++){
+    for(; i < limit; i++){
         if(stateTracker[trackerIndex].bitboards[i] & fromBitboard){
             stateTracker[trackerIndex].bitboards[i] &= ~fromBitboard;
             stateTracker[trackerIndex].bitboards[i] |= toBitboard;
@@ -101,11 +102,65 @@ void Board::move(const Move& move){
         limit = 5;
     }
     
-    for(i; i < limit; i++){
+    for(; i < limit; i++){
         if(stateTracker[trackerIndex].bitboards[i] & toBitboard){
             stateTracker[trackerIndex].bitboards[i] &= ~toBitboard;
             break;
         }
+    }
+
+    // en passant implementation
+    if(toBitboard == stateTracker[trackerIndex].enPassantTarget){
+        if(movedPiece == wpawn){
+            stateTracker[trackerIndex].bitboards[bpawn] ^= stateTracker[trackerIndex].enPassantTarget << 8;
+        }
+        else if(movedPiece == bpawn){
+            stateTracker[trackerIndex].bitboards[wpawn] ^= stateTracker[trackerIndex].enPassantTarget >> 8;
+        }
+    }
+
+    // set en passant target
+    if((movedPiece == wpawn || movedPiece == bpawn) && abs(move.toSquare - move.fromSquare) == 16){
+        stateTracker[trackerIndex].enPassantTarget = uint64_t(1) << int((move.fromSquare + move.toSquare) * 0.5);
+    }
+    else{
+        stateTracker[trackerIndex].enPassantTarget = 0;
+    }
+
+    // castling
+    if(movedPiece == wking){
+        if(moveBitboard == 0x5000000000000000){
+            stateTracker[trackerIndex].bitboards[wrook] ^= 0xa000000000000000;
+        }
+        else if(moveBitboard == 0x1400000000000000){
+            stateTracker[trackerIndex].bitboards[wrook] ^= 0x0900000000000000;
+        }
+    }
+    else if(movedPiece == bking){
+        if(moveBitboard == 0x0000000000000050){
+            stateTracker[trackerIndex].bitboards[brook] ^= 0x00000000000000a0;
+        }
+        else if(moveBitboard == 0x0000000000000014){
+            stateTracker[trackerIndex].bitboards[brook] ^= 0x0000000000000009;
+        }
+    }
+
+    // update castling rights
+    if(moveBitboard & 0x5000000000000000) stateTracker[trackerIndex].whiteKingCastle = false;    
+    if(moveBitboard & 0x1100000000000000) stateTracker[trackerIndex].whiteQueenCastle = false;
+    if(moveBitboard & 0x0000000000000050) stateTracker[trackerIndex].blackKingCastle = false;
+    if(moveBitboard & 0x0000000000000011) stateTracker[trackerIndex].blackQueenCastle = false;
+
+    // promoting pawns
+    if(move.promote != empty){
+        if(stateTracker[trackerIndex].turn == white){
+            stateTracker[trackerIndex].bitboards[wpawn] ^= toBitboard;
+        }
+        else{
+            stateTracker[trackerIndex].bitboards[bpawn] ^= toBitboard;
+        }
+        
+        stateTracker[trackerIndex].bitboards[move.promote] ^= toBitboard;
     }
 
     // change turn

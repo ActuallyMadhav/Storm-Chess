@@ -11,46 +11,44 @@ double boardY = 0;
 double boardSize = height;
 
 double squareSize = boardSize * 0.9 * 0.125;
-double squareX = boardX + boardSize*0.05;
-double squareY = boardY + boardSize*0.05;
+double squareX = boardX + boardSize * 0.05;
+double squareY = boardY + boardSize * 0.05;
 
 // board color
-Color boardBackground = CLITERAL(Color){90, 63, 47,255};
+Color boardBackground = CLITERAL(Color){90, 63, 47, 255};
 
-// draw chess board
 void drawBoard();
 void drawPiece(int x, int y, int size, int piece);
-bool flipped = false;   // tracks whether board is flipped or not
-std::pair<int, int> getScreenCoords(int x, int y);    // gives the flipped coordinates if board is flipped. gives normal if not
+bool flipped = false;
+std::pair<int, int> getScreenCoords(int x, int y);
 
-// input handling
 void mouse();
 void keyboard();
 
-// coordinates to track selected square
 int selectX = -1;
 int selectY = -1;
 
-// game state
+// promotion state
+int promoteX = -1;
+int promoteY = -1;
+bool pendingPromotion = false;
+Move pendingMove;   // promotion move
+
 Board game;
 
-// old move tracker
 Move moveTracker[1000];
 int moveIndex = 0;
 
 int main(){
-
     InitWindow(width, height, "Chess Engine");
     game.loadSprites();
     SetTargetFPS(60);
 
     while(!WindowShouldClose()){
-
         mouse();
         keyboard();
 
         BeginDrawing();
-        GetWorkingDirectory();
         ClearBackground(RAYWHITE);
         drawBoard();
         EndDrawing();
@@ -67,7 +65,6 @@ std::pair<int, int> getScreenCoords(int x, int y){
         screenY = squareY + squareSize * (7 - y);
     }
     else{
-        // not flipped
         screenX = squareX + squareSize * x;
         screenY = squareY + squareSize * y;
     }
@@ -76,58 +73,117 @@ std::pair<int, int> getScreenCoords(int x, int y){
 
 void mouse(){
     Vector2 mousePos = GetMousePosition();
-    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-        // get click coordinates
-        int clickX = floor((mousePos.x - squareX) / squareSize);
-        int clickY = floor((mousePos.y - squareY) / squareSize);
+    if(!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
-        if(flipped){
-            clickX = 7 - clickX;
-            clickY = 7 - clickY;
-        }
-        // move selected piece if selected square has piece
-        if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8 && game.getPiece(selectX + 8 * selectY) != empty){
-            if(clickX >= 0 && clickX < 8 && clickY >= 0 && clickY < 8){
-                uint8_t fromSquare = selectX + selectY*8;
-                uint8_t toSquare = clickX + clickY*8;
+    // --- handle promotion GUI click ---
+    if(pendingPromotion){
+        std::pair<int, int> promotionCoords = getScreenCoords(promoteX, promoteY);
+        uint8_t chosenPiece = empty;
 
-                moveTracker[moveIndex].fromSquare = fromSquare;
-                moveTracker[moveIndex].toSquare = toSquare;
-                moveTracker[moveIndex].promote = empty;
-
-                game.move(moveTracker[moveIndex++]);
+        if(promoteY == 0){  // white promote so GUI draws downward from rank 0
+            float guiTop = promotionCoords.second;
+            if(mousePos.x >= promotionCoords.first && mousePos.x <= promotionCoords.first + squareSize){
+                int row = (int)floor((mousePos.y - guiTop) / squareSize);
+                switch(row){
+                    case 0: chosenPiece = wqueen;  break;
+                    case 1: chosenPiece = wrook;   break;
+                    case 2: chosenPiece = wbishop; break;
+                    case 3: chosenPiece = wknight; break;
+                }
             }
+        }
+        else if(promoteY == 7){  // black promot so GUI draws upward from rank 7
+            float guiTop = promotionCoords.second - squareSize * 4;
+            if(mousePos.x >= promotionCoords.first && mousePos.x <= promotionCoords.first + squareSize){
+                int row = (int)floor((mousePos.y - guiTop) / squareSize);
+                switch(row){
+                    case 0: chosenPiece = bqueen;  break;
+                    case 1: chosenPiece = brook;   break;
+                    case 2: chosenPiece = bbishop; break;
+                    case 3: chosenPiece = bknight; break;
+                }
+            }
+        }
 
-            selectX = -1;
-            selectY = -1;
+        if(chosenPiece != empty){
+            // undo the pawn move, redo it with promotion set
+            game.undo();
+            moveIndex--;
+
+            pendingMove.promote = chosenPiece;
+            moveTracker[moveIndex] = pendingMove;
+            game.move(moveTracker[moveIndex++]);
+
+            pendingPromotion = false;
+            promoteX = -1;
+            promoteY = -1;
         }
-        else{
-            // select square that was clicked
-            selectX = clickX;
-            selectY = clickY;
+        return; // eat the click; don't allow normal move while GUI is open
+    }
+
+    // normal moves handling
+    int clickX = (int)floor((mousePos.x - squareX) / squareSize);
+    int clickY = (int)floor((mousePos.y - squareY) / squareSize);
+
+    if(flipped){
+        clickX = 7 - clickX;
+        clickY = 7 - clickY;
+    }
+
+    if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8
+       && game.getPiece(selectX + 8 * selectY) != empty){
+
+        if(clickX >= 0 && clickX < 8 && clickY >= 0 && clickY < 8){
+            uint8_t fromSquare = selectX + selectY * 8;
+            uint8_t toSquare   = clickX  + clickY  * 8;
+
+            moveTracker[moveIndex].fromSquare = fromSquare;
+            moveTracker[moveIndex].toSquare   = toSquare;
+            moveTracker[moveIndex].promote    = empty;
+
+            game.move(moveTracker[moveIndex++]);
+
+            // check for pawn reaching back rank
+            uint8_t movedPiece = game.getPiece(toSquare);
+            if((clickY == 0 && movedPiece == wpawn) ||
+               (clickY == 7 && movedPiece == bpawn)){
+                promoteX = clickX;
+                promoteY = clickY;
+                pendingPromotion = true;
+                pendingMove = moveTracker[moveIndex - 1];
+            }
+            else{
+                promoteX = -1;
+                promoteY = -1;
+            }
         }
+
+        selectX = -1;
+        selectY = -1;
+    }
+    else{
+        selectX = clickX;
+        selectY = clickY;
     }
 }
 
 void keyboard(){
-    // close on 'esc' key
     if(IsKeyPressed(KEY_ESCAPE)){
         CloseWindow();
     }
-
-    // flip board on 'space' key
     if(IsKeyPressed(KEY_SPACE)){
         flipped = !flipped;
     }
-
     if(IsKeyPressed(KEY_BACKSPACE)){
-        game.undo();
-        moveIndex--;
+        // don't allow undo while promotion is pending
+        if(!pendingPromotion){
+            game.undo();
+            if(moveIndex > 0) moveIndex--;
+        }
     }
 }
 
 void drawBoard(){
-    //draw background
     DrawRectangle(boardX, boardY, boardX + boardSize, boardY + boardSize, boardBackground);
 
     for(int i = 0; i < 8; i++){
@@ -139,22 +195,24 @@ void drawBoard(){
     }
 
     // highlight selected square
-    std::pair<int, int> highlightCoords = getScreenCoords(selectX, selectY);
     if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8){
+        std::pair<int, int> highlightCoords = getScreenCoords(selectX, selectY);
         DrawRectangle(highlightCoords.first, highlightCoords.second, squareSize, squareSize, GREEN);
     }
 
-    // show previous move
-    Vector2 fromCoords = {
-        (float)(squareX + squareSize * (moveTracker[moveIndex-1].fromSquare % 8 + 0.5)), // from x-coord
-        (float)(squareY + squareSize * (moveTracker[moveIndex-1].fromSquare / 8 + 0.5)), // from y-coord
-    };
-    Vector2 toCoords = {
-        (float)(squareX + squareSize * (moveTracker[moveIndex-1].toSquare % 8 + 0.5)),   // to x-coord
-        (float)(squareY + squareSize * (moveTracker[moveIndex-1].toSquare / 8 + 0.5)),   // to y-coord
-    };
-    // draw line
-    DrawLineEx(fromCoords, toCoords, 5.0f, GREEN);
+    // show previous move arrow
+    if(moveIndex > 0){
+        Vector2 fromCoords = {
+            (float)(squareX + squareSize * (moveTracker[moveIndex-1].fromSquare % 8 + 0.5)),
+            (float)(squareY + squareSize * (moveTracker[moveIndex-1].fromSquare / 8 + 0.5)),
+        };
+        Vector2 toCoords = {
+            (float)(squareX + squareSize * (moveTracker[moveIndex-1].toSquare % 8 + 0.5)),
+            (float)(squareY + squareSize * (moveTracker[moveIndex-1].toSquare / 8 + 0.5)),
+        };
+        DrawLineEx(fromCoords, toCoords, 5.0f, GREEN);
+    }
+
     // draw pieces
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
@@ -163,23 +221,40 @@ void drawBoard(){
             drawPiece(screenCoords.first + 0.5 * squareSize, screenCoords.second + 0.5 * squareSize, squareSize, game.getPiece(square));
         }
     }
+
+    // draw promotion GUI
+    if(pendingPromotion){
+        std::pair<int, int> promotionCoords = getScreenCoords(promoteX, promoteY);
+
+        if(promoteY == 0){
+            // rank 0 is top of screen so draw downward
+            DrawRectangle(promotionCoords.first, promotionCoords.second, squareSize, squareSize*4, WHITE);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second + squareSize*0.5, squareSize, wqueen);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second + squareSize*1.5, squareSize, wrook);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second + squareSize*2.5, squareSize, wbishop);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second + squareSize*3.5, squareSize, wknight);
+        }
+        if(promoteY == 7){
+            // rank 7 is bottom of screen so draw upward
+            DrawRectangle(promotionCoords.first, promotionCoords.second - squareSize*4, squareSize, squareSize*4, WHITE);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second - squareSize*3.5, squareSize, bqueen);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second - squareSize*2.5, squareSize, brook);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second - squareSize*1.5, squareSize, bbishop);
+            drawPiece(promotionCoords.first + squareSize*0.5, promotionCoords.second - squareSize*0.5, squareSize, bknight);
+        }
+    }
 }
 
-// draw piece func
 void drawPiece(int x, int y, int size, int piece){
     if(piece != empty){
         Texture2D sprite = game.pieceSprites[piece];
-
-        // scale to match square size and center accordingly
         float scaleX = (float)squareSize / sprite.width;
         float scaleY = (float)squareSize / sprite.height;
         float scale = fmin(scaleX, scaleY);
-
         Vector2 pos = {
             x - (sprite.width * scale) / 2,
             y - (sprite.height * scale) / 2
         };
-
         DrawTextureEx(sprite, pos, 0.0f, scale, WHITE);
     }
 }
