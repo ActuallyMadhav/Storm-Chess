@@ -178,6 +178,25 @@ void Board::undo(){
     }
 }
 
+void Board::psuedoLegalMoves(Move* move, int& numMoves){
+
+}
+
+bool Board::isLegal(const Move& move){
+    Move moves[256];
+    int numMoves;
+    psuedoLegalMoves(moves, numMoves);
+
+    for(int i = 0; i < numMoves; i++){
+        if(move == moves[i]) return true;
+    }
+
+    return false;
+}
+
+uint8_t Board::turn(){
+    return stateTracker[trackerIndex].turn;
+}
 Board::Board(){
     // allocating memory for entire game
     stateTracker = new  boardState[1000];

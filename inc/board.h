@@ -33,6 +33,11 @@ struct Move{
 
     // promotion validity;
     uint8_t promote;
+
+    // operator overload to compare moves
+    bool operator== (const Move& rhs) const{
+        return fromSquare == rhs.fromSquare && toSquare == rhs.toSquare && promote == rhs.promote;
+    }
 };
 
 class Board{
@@ -50,6 +55,11 @@ public:
     // move methods
     void move(const Move& move);
     void undo();
+
+    // move generation
+    void psuedoLegalMoves(Move* move, int& numMoves);
+    bool isLegal(const Move& move);
+    uint8_t turn(); // shows whos turn it is
 
     // constructor
     Board();

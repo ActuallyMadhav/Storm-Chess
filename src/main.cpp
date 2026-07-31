@@ -75,7 +75,7 @@ void mouse(){
     Vector2 mousePos = GetMousePosition();
     if(!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
-    // --- handle promotion GUI click ---
+    // promotion gui
     if(pendingPromotion){
         std::pair<int, int> promotionCoords = getScreenCoords(promoteX, promoteY);
         uint8_t chosenPiece = empty;
@@ -106,7 +106,7 @@ void mouse(){
         }
 
         if(chosenPiece != empty){
-            // undo the pawn move, redo it with promotion set
+            // undo pawn move and redo with promotion set
             game.undo();
             moveIndex--;
 
@@ -118,7 +118,7 @@ void mouse(){
             promoteX = -1;
             promoteY = -1;
         }
-        return; // eat the click; don't allow normal move while GUI is open
+        return; // don't allow normal move while GUI is open
     }
 
     // normal moves handling
@@ -198,6 +198,30 @@ void drawBoard(){
     if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8){
         std::pair<int, int> highlightCoords = getScreenCoords(selectX, selectY);
         DrawRectangle(highlightCoords.first, highlightCoords.second, squareSize, squareSize, GREEN);
+    }
+
+    // show legal moves
+    if(selectX >= 0 && selectX < 8 && selectY >= 0 && selectY < 8){
+        for(int x = 0; x < 8; x++){
+            for(int y = 0; y < 8; y++){
+                Move move;
+                move.fromSquare = selectX + 8 * selectY;
+                move.toSquare = x + 8 * y;
+                move.promote = empty;
+
+                Move promotion = move;
+                if(game.turn() == white){
+                    promotion.promote = wqueen;
+                }
+                else{
+                    promotion.promote = bqueen;
+                }
+
+                if(game.isLegal(move) || game.isLegal(promotion)){
+                    
+                }
+            }
+        }
     }
 
     // show previous move arrow
